@@ -1,0 +1,8 @@
+MOV EAX, 10
+MOV EBX, EAX
+MUL EAX, EBX
+DIV EAX, EDX
+
+
+
+
