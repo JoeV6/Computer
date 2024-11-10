@@ -21,11 +21,13 @@ public class Motherboard {
     }
 
     public void boot() {
-        this.ram = new RAM(this, ramMemorySize, ramStackSize);  // 1KB memory, 1KB stack
+        this.ram = new RAM(this, ramMemorySize, ramStackSize);
         this.cpu = new CPU(this);
 
         cpu.init();
         ram.init();
+
+        cpu.loadProgram("src/main/resources/programs/test.asm");
 
         // TODO: Load RAM and CPU state from disk
     }

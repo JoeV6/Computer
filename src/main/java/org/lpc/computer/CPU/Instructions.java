@@ -9,7 +9,8 @@ public interface Instructions {
      * 0x20 - 0x2F: Logical instructions
      * 0x30 - 0x3F: Control flow instructions
      * 0x40 - 0x4F: Stack operations
-     * 0x50 - 0xFF: Reserved for future use
+     * 0x50 - 0xFE: Reserved for future use
+     * 0xFF: -1, Invalid instruction
      */
 
     // Basic data transfer instructions

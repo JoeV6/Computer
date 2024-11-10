@@ -5,6 +5,8 @@ import lombok.Setter;
 import org.lpc.computer.Motherboard;
 import org.lpc.computer.RAM;
 
+import java.io.File;
+
 /**
  * 32-bit CPU
  * 32-bit registers
@@ -24,6 +26,7 @@ public class CPU implements Instructions, Registers{
 
     Motherboard motherboard;
     RAM ram;
+    Assembler assembler;
 
     public CPU(Motherboard motherboard){
         this.motherboard = motherboard;
@@ -32,26 +35,38 @@ public class CPU implements Instructions, Registers{
 
     public void init(){
         this.ram = motherboard.getRam();
+        this.assembler = new Assembler(this);
         ESP_VALUE = ram.getStackEnd();
+    }
+
+    public void loadProgram(String programFile){
+        File file = new File(programFile);
+        try {
+            assembler.assemble(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void run() {
         while (true) {
-            int opcode = fetch(); // Fetch the instruction
+            byte opcode = fetch(); // Fetch the instruction
             decodeAndExecute(opcode); // Decode and execute the instruction
             IP_VALUE += 4; // Move the PC to the next instruction (assuming 4-byte instructions)
         }
     }
 
-    private int fetch() {
-        return 0;
+    private byte fetch() {
+        return ram.read(IP_VALUE);
     }
 
     private void decodeAndExecute(int opcode) {
-        switch (opcode) {
+        switch(opcode) {
 
         }
     }
+
+
 
 
 
