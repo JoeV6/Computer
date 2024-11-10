@@ -23,7 +23,16 @@ public class Logger {
         System.out.println();
     }
 
-    public static void logln(Object... message) {
+    public static void logErr(Object... message) {
+        for (Object m : message) {
+            startColor(ANSI_RED);
+            System.out.println(m.toString());
+            endColor();
+        }
+        System.err.println();
+    }
+
+    public static void logLn(Object... message) {
         for (Object m : message) {
             System.out.println(m.toString());
         }

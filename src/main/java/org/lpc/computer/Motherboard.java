@@ -18,6 +18,7 @@ public class Motherboard {
         this.cpu = new CPU(this);
 
         cpu.init();
+        ram.init();
 
         // TODO: Load RAM and CPU state from disk
     }

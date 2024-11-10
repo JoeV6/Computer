@@ -6,9 +6,12 @@ import lombok.Setter;
 
 import java.util.Arrays;
 
+import static org.lpc.Logger.logErr;
+
 @Getter @Setter
 public class RAM {
     Motherboard motherboard;
+    CPU cpu;
 
     byte[] memory;  // A single memory array for both stack and data
     int stackStart;
@@ -29,6 +32,7 @@ public class RAM {
 
     public RAM(Motherboard motherboard, int memorySize, int stackSize) {
         this.motherboard = motherboard;
+
         this.memory = new byte[memorySize];
         this.stackSize = stackSize;
 
@@ -44,11 +48,15 @@ public class RAM {
         reset();
     }
 
+    public void init() {
+        this.cpu = motherboard.getCpu();
+    }
+
     public void write(int address, byte value) {
         if (address >= 0 && address < memory.length) {
             memory[address] = value;
         } else {
-            System.err.println("Memory address out of bounds");
+            logErr("Memory address out of bounds");
         }
     }
 
@@ -56,7 +64,7 @@ public class RAM {
         if (address >= 0 && address < memory.length) {
             return memory[address];
         } else {
-            System.err.println("Memory address out of bounds");
+            logErr("Memory address out of bounds");
             return 0;
         }
     }
@@ -77,9 +85,7 @@ public class RAM {
                 ((read(address + 3) & 0xFF) << 24);
     }
 
-
     // 64-bit operations, don't know if this is necessary
-
     public void writeDWord(long value, int address) {
         writeWord((int) (value & 0xFFFFFFFFL), address);
         writeWord((int) (value >> 32), address + 4);
@@ -126,10 +132,25 @@ public class RAM {
 
             // If the value is non-zero, print it
             if (value != 0) {
-                sb.append(String.format("%08X %08X %08X %08X (0x%04X : %04d)\n",
+                sb.append(String.format("%08X %08X %08X %08X (0x%04X : %04d) [int: %d]\n",
                         memory[i] & 0xFF, memory[i + 1] & 0xFF,
-                        memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i));
+                        memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i, value));
             }
+        }
+
+        return sb.toString();
+    }
+
+    public String prettyDumpAll(){
+        StringBuilder sb = new StringBuilder();
+        int address = 0;
+
+        for (int i = 0; i < memory.length; i += 4) {
+            int value = readWord(i);
+
+            sb.append(String.format("%08X %08X %08X %08X (0x%04X : %04d) [int: %d]\n",
+                    memory[i] & 0xFF, memory[i + 1] & 0xFF,
+                    memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i, value));
         }
 
         return sb.toString();

@@ -39,11 +39,11 @@ public class CPU {
 
     public CPU(Motherboard motherboard){
         this.motherboard = motherboard;
-        this.ram = motherboard.getRam();
         reset();
     }
 
     public void init(){
+        this.ram = motherboard.getRam();
         ESP = ram.getStackEnd();
     }
 

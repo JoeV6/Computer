@@ -23,27 +23,8 @@ public class Main {
             log(cpu, ram);
         endColor();
 
-        ram.writeWord(100000, 0x07FC);
-        ram.writeWord(4, 2040);
-
-        logln(
-            ram.readWord(0x07FC),
-            ram.readWord(2040)
-        );
-
         startColor(ANSI_GREEN);
             log(ram.prettyDump());
         endColor();
-
-
-
-        cpu.push(100);
-        cpu.push(200);
-
-        logln(
-            cpu.pop(),
-            cpu.pop()
-        );
-
     }
 }
