@@ -13,15 +13,17 @@ public class Motherboard {
     private int ramMemorySize;
     private int ramStackSize;
     private int ramDataSize;
+    private int ramProgramSize;
 
-    public Motherboard(int ramMemorySize, int ramStackSize) {
-        this.ramMemorySize = ramMemorySize;
+    public Motherboard(int ramStackSize, int ramDataSize, int ramProgramSize) {
+        this.ramMemorySize = ramProgramSize + ramDataSize + ramStackSize;
         this.ramStackSize = ramStackSize;
-        this.ramDataSize = ramMemorySize - ramStackSize;
+        this.ramDataSize = ramDataSize;
+        this.ramProgramSize = ramProgramSize;
     }
 
     public void boot() {
-        this.ram = new RAM(this, ramMemorySize, ramStackSize);
+        this.ram = new RAM(this, ramDataSize, ramStackSize, ramProgramSize);
         this.cpu = new CPU(this);
 
         cpu.init();

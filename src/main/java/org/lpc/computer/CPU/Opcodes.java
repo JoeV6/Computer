@@ -1,6 +1,6 @@
 package org.lpc.computer.CPU;
 
-public interface Instructions {
+public interface Opcodes {
     /**
      * Instruction set for the CPU
      * 1 Byte instruction set
@@ -14,11 +14,12 @@ public interface Instructions {
      */
 
     // Basic data transfer instructions
-    byte MOV = 0x01;  // MOV dst, src: Moves data from src to dst
-    byte LOAD = 0x02; // LOAD reg, address: Loads data from memory address to register
-    byte STORE = 0x03; // STORE address, reg: Stores register value at memory address
+    byte MOV = 0x01;          // MOV dst, src (register-to-register)
+    byte MOV_I = 0x02;        // MOV dst, imm (immediate-to-register) [ 1 byte opcode, 1 byte register , 2 byte 0 buffer, 4 byte immediate value]
+    byte LOAD = 0x03;         // LOAD reg, address: Loads data from memory address to register [1 byte opcode, 1 byte register, 2 byte 0 buffer, 4 byte address]
+    byte STORE = 0x04;        // STORE address, reg: Stores register value at memory address [1 byte opcode, 1 byte register, 2 byte 0 buffer, 4 byte address]
 
-    //Arithmetic instructions
+    //Arithmetic instructions [ 1 byte opcode, 1 byte src, 1 byte src, 1 byte dst]
     byte ADD = 0x10;  // ADD dst, src: Adds src to dst and stores result in dst
     byte SUB = 0x11;  // SUB dst, src: Subtracts src from dst and stores result in dst
     byte MUL = 0x12;  // MUL dst, src: Multiplies dst by src and stores result in dst

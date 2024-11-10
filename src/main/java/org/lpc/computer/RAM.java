@@ -23,6 +23,10 @@ public class RAM {
     int dataEnd;
     int dataSize;
 
+    int programStart;
+    int programEnd;
+    int programSize;
+
     /***
      * ----- Memory Layout -----
      * Example memory layout for 1KB program memory, 1KB stack and 1KB data:
@@ -31,20 +35,25 @@ public class RAM {
      * 2048 - 3071: Stack
      */
 
-    public RAM(Motherboard motherboard, int memorySize, int stackSize) {
+    public RAM(Motherboard motherboard, int dataSize, int stackSize, int programSize) {
         this.motherboard = motherboard;
 
-        this.memory = new byte[memorySize];
+        this.memory = new byte[programSize + dataSize + stackSize];
         this.stackSize = stackSize;
 
         // Set up stack region (starts at the end of the memory and grows downward)
-        this.stackStart = memorySize - stackSize; // stack starts at memory[1024]
-        this.stackEnd = memorySize; // stack ends at memory[2047]
+        this.stackStart = memory.length - stackSize; // stack starts at memory[1024]
+        this.stackEnd = memory.length; // stack ends at memory[2047]
 
         // Set up data region (starts at the beginning of the memory)
-        this.dataStart = 0;
-        this.dataEnd = stackStart - 1; // data ends right before the stack starts
-        this.dataSize = dataEnd + 1;
+        this.dataStart = stackStart - dataSize;
+        this.dataEnd = stackStart - 1;
+        this.dataSize = dataSize;
+
+        // Set up program region (starts at the end of the data region)
+        this.programStart = dataStart - programSize;
+        this.programEnd = dataStart - 1;
+        this.programSize = programSize;
 
         reset();
     }
@@ -70,8 +79,6 @@ public class RAM {
         }
     }
 
-    // -------- Stack operations --------
-
     public void writeWord(int value, int address) {
         write(address, (byte) (value & 0xFF));
         write(address + 1, (byte) ((value >> 8) & 0xFF));
@@ -84,6 +91,22 @@ public class RAM {
                 ((read(address + 1) & 0xFF) << 8) |
                 ((read(address + 2) & 0xFF) << 16) |
                 ((read(address + 3) & 0xFF) << 24);
+    }
+
+    public static byte[] convertIntToBytes(int value) {
+        byte[] bytes = new byte[4];
+        bytes[0] = (byte) (value & 0xFF);
+        bytes[1] = (byte) ((value >> 8) & 0xFF);
+        bytes[2] = (byte) ((value >> 16) & 0xFF);
+        bytes[3] = (byte) ((value >> 24) & 0xFF);
+        return bytes;
+    }
+
+    public static int convertBytesToInt(byte[] bytes) {
+        return (bytes[0] & 0xFF) |
+                ((bytes[1] & 0xFF) << 8) |
+                ((bytes[2] & 0xFF) << 16) |
+                ((bytes[3] & 0xFF) << 24);
     }
 
     // 64-bit operations, don't know if this is necessary
@@ -119,23 +142,29 @@ public class RAM {
                     start=%d,
                     end=%d
                 }
+                Program {
+                    size=%d,
+                    start=%d,
+                    end=%d
+                }
             }
-            """.formatted(memory.length, stackSize, stackStart, stackEnd, dataSize, dataStart, dataEnd);
+            """.formatted(memory.length, stackSize, stackStart, stackEnd, dataSize, dataStart, dataEnd, programSize, programStart, programEnd);
     }
 
-    public String Dump() {
+    public String dump() {
         StringBuilder sb = new StringBuilder();
         int address = 0;
 
         // Iterate through memory in steps of 4 bytes (word size)
         for (int i = address; i < memory.length; i += 4) {
             int value = readWord(i);
+            String opcode = cpu.getOpcodeName(memory[i]);
 
             // If the value is non-zero, print it
             if (value != 0) {
-                sb.append(String.format("%08X %08X %08X %08X (0x%04X : %04d) [int: %06d]\n",
+                sb.append(String.format("%08X %08X %08X %08X (0x%04X : %04d) [int: %06d] | opcode: %s\n",
                         memory[i] & 0xFF, memory[i + 1] & 0xFF,
-                        memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i, value));
+                        memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i, value, opcode));
             }
         }
 

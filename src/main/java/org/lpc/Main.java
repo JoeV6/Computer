@@ -11,20 +11,31 @@ public class Main {
     static CPU cpu;
 
     public static void main(String[] args) {
-        Motherboard motherboard = new Motherboard(3072, 1024);
+        Motherboard motherboard = new Motherboard(1024, 1024, 1024);
 
         motherboard.boot();
-        motherboard.shutdown();
 
-        CPU cpu = motherboard.getCpu();
-        RAM ram = motherboard.getRam();
+        cpu = motherboard.getCpu();
+        ram = motherboard.getRam();
 
         startColor(ANSI_YELLOW);
             log(cpu, ram);
         endColor();
 
         startColor(ANSI_GREEN);
-            log(ram.Dump());
+            log(ram.dump());
         endColor();
+
+        cpu.run();
+
+        startColor(ANSI_BLUE);
+            log(ram.dump());
+        endColor();
+
+        startColor(ANSI_YELLOW);
+            log(cpu, ram);
+        endColor();
+
+        motherboard.shutdown();
     }
 }

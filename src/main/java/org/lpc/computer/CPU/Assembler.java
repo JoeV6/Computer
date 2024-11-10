@@ -6,9 +6,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
+import java.nio.ByteBuffer;
 
-import static org.lpc.computer.CPU.Instructions.*;
+import static org.lpc.computer.CPU.Opcodes.*;
+import static org.lpc.computer.RAM.convertIntToBytes;
 
 public class Assembler implements Registers {
     private CPU cpu;
@@ -38,121 +39,181 @@ public class Assembler implements Registers {
                 currentAddress++;
             }
         }
+        ram.setProgramEnd(currentAddress - 1);
         reader.close();
     }
 
     public byte[] decodeInstruction(String instruction) {
-        byte[] bytes = new byte[4]; // buffer with 0s
-
         String[] parts = instruction.split(" ");
         if (parts.length == 0) {
             throw new IllegalArgumentException("Empty instruction.");
         }
 
         String opcode = parts[0];
+        byte op;
         try{
-            bytes[0] = getOpCode(opcode);
+            op = getOpCode(opcode);
         } catch (IllegalArgumentException e){
             throw new IllegalArgumentException("Invalid opcode: " + opcode + " in instruction: " + instruction);
         }
 
-        switch (bytes[0]) {
+        switch (op) {
             case MOV -> {
-                if (parts.length != 3) {
-                    throw new IllegalArgumentException("MOV requires 2 arguments.");
-                }
-                if (isNumber(parts[2])) {
-                    bytes[1] = getRegister(parts[1]);
-                    bytes[2] = Byte.parseByte(parts[2]);
-                } else if (isRegister(parts[2])) {
-                    bytes[1] = getRegister(parts[1]);
-                    bytes[2] = getRegister(parts[2]);
-                } else {
-                    throw new IllegalArgumentException("Invalid MOV instruction: " + instruction);
-                }
+                return handleMOV(parts);
             }
             case LOAD -> {
-                if (parts.length != 3) {
-                    throw new IllegalArgumentException("LOAD requires 2 arguments.");
-                }
-                bytes[1] = getRegister(parts[1]);
-                bytes[2] = getRegister(parts[2]);
+                return handleLOAD(parts);
             }
             case STORE -> {
-                if (parts.length != 3) {
-                    throw new IllegalArgumentException("STORE requires 2 arguments.");
-                }
-                bytes[1] = getRegister(parts[1]);
-                bytes[2] = Byte.parseByte(parts[2]);
+                return handleSTORE(parts);
             }
             case ADD, SUB, MUL, DIV -> {
-                if (parts.length == 4) {
-                    bytes[1] = getRegister(parts[1]);
-                    bytes[2] = getRegister(parts[2]);
-                    bytes[3] = getRegister(parts[3]);
-                } else if (parts.length == 3) {
-                    if (isNumber(parts[2])) {
-                        bytes[1] = getRegister(parts[1]);
-                        bytes[2] = Byte.parseByte(parts[2]);
-                        bytes[3] = getRegister(parts[1]);
-                    } else if (isRegister(parts[2])) {
-                        bytes[1] = getRegister(parts[1]);
-                        bytes[2] = getRegister(parts[2]);
-                        bytes[3] = getRegister(parts[1]);
-                    } else {
-                        throw new IllegalArgumentException("Invalid ADD/SUB/MUL/DIV instruction: " + instruction);
-                    }
-                } else {
-                    throw new IllegalArgumentException("Invalid ADD/SUB/MUL/DIV instruction: " + instruction);
-                }
+                return handleArithmetic(parts, op);
             }
             case AND, OR, XOR -> {
-                if (parts.length != 4) {
-                    throw new IllegalArgumentException("AND/OR/XOR requires 3 arguments.");
-                }
-                bytes[1] = getRegister(parts[1]);
-                bytes[2] = getRegister(parts[2]);
-                bytes[3] = getRegister(parts[3]);
+                return handleLogical(parts, op);
             }
             case NOT, PUSH, POP -> {
-                if (parts.length != 2) {
-                    throw new IllegalArgumentException("NOT/PUSH/POP requires 1 argument.");
-                }
-                bytes[1] = getRegister(parts[1]);
+                return handleSingleRegister(parts, op);
             }
             case JMP, JZ, JNZ, CALL -> {
-                if (parts.length != 2) {
-                    throw new IllegalArgumentException("JMP/JZ/JNZ/CALL requires 1 argument.");
-                }
-                bytes[1] = Byte.parseByte(parts[1]);
+                return handleControlFlow(parts, op);
             }
             case RET -> {
-                // No arguments, no further action needed
+                return handleRET();
             }
             default -> {
                 throw new IllegalArgumentException("Invalid opcode: " + opcode);
             }
         }
+    }
+
+    public byte[] handleMOV(String[] parts) {
+        String dst = parts[1];
+        String src = parts[2]; // Source register or immediate value
+
+        byte[] bytes;
+
+        if (src.matches("-?\\d+")) { // MOV dst, IMM (immediate value)
+            bytes = new byte[8];
+            bytes[0] = MOV_I;
+            bytes[1] = getRegister(dst);
+
+            // Use the convertIntToBytes method to convert the immediate value (integer) to 4-byte representation
+            byte[] valueBytes = convertIntToBytes(Integer.parseInt(src));
+            System.arraycopy(valueBytes, 0, bytes, 4, 4); // Copy the 4 bytes of immediate value into the instruction bytes
+        } else { // MOV dst, REG (register-to-register)
+            bytes = new byte[4];
+            bytes[0] = MOV;
+            bytes[1] = getRegister(dst);
+            bytes[2] = getRegister(src);
+        }
 
         return bytes;
     }
 
-    public boolean isRegister(String register) {
-        try {
-            getRegister(register);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
+
+    public byte[] handleLOAD(String[] parts) {
+        String reg = parts[1];
+        String address = parts[2];
+
+        byte[] bytes = new byte[8];
+
+        bytes[0] = LOAD;
+        bytes[1] = getRegister(reg);
+
+        // Use convertIntToBytes for the address
+        byte[] addrBytes = convertIntToBytes(Integer.parseInt(address));
+        System.arraycopy(addrBytes, 0, bytes, 4, 4); // Store the address in the last 4 bytes
+
+        return bytes;
     }
 
-    public boolean isNumber(String number) {
-        try {
-            Byte.parseByte(number);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
+    public byte[] handleSTORE(String[] parts) {
+        String reg = parts[1];
+        String address = parts[2];
+
+        byte[] bytes = new byte[8];
+
+        bytes[0] = STORE;
+        bytes[1] = getRegister(reg);
+
+        // Use convertIntToBytes for the address
+        byte[] addrBytes = convertIntToBytes(Integer.parseInt(address));
+        System.arraycopy(addrBytes, 0, bytes, 4, 4); // Store the address in the last 4 bytes
+
+        return bytes;
+    }
+
+
+
+    public byte[] handleArithmetic(String[] parts, byte opcode) {
+        String dst = parts[1];
+        String src1 = parts[2];
+        String src2 = parts.length > 3 ? parts[3] : null; // Second source register (optional)
+
+        byte[] bytes = new byte[4]; // Always 4 bytes for arithmetic operations
+
+        bytes[0] = opcode;
+
+        if (src2 != null) { // Case for 3 operands: src1, src2, dst
+            bytes[1] = getRegister(src1);
+            bytes[2] = getRegister(src2);
+        } else { // Case for 2 operands: dst, src
+            bytes[1] = getRegister(dst);
+            bytes[2] = getRegister(src1);
         }
+
+        bytes[3] = getRegister(dst);
+
+        return bytes;
+    }
+
+    public byte[] handleLogical(String[] parts, byte opcode) {
+        String dst = parts[1];
+        String src = parts[2];
+
+        byte[] bytes = new byte[4]; // Always 4 bytes for logical operations
+
+        bytes[0] = opcode;
+
+        bytes[1] = getRegister(dst);
+        bytes[2] = getRegister(src);
+        bytes[3] = getRegister(dst);
+
+        return bytes;
+    }
+
+    public byte[] handleSingleRegister(String[] parts, byte opcode) {
+        String reg = parts[1];
+
+        byte[] bytes = new byte[4];
+
+        bytes[0] = opcode;
+        bytes[1] = getRegister(reg);
+
+        return bytes;
+    }
+
+    public byte[] handleControlFlow(String[] parts, byte opcode) {
+        String address = parts[1];
+
+        byte[] bytes = new byte[8];
+
+        bytes[0] = opcode;
+
+        // Use convertIntToBytes for the address
+        byte[] addrBytes = convertIntToBytes(Integer.parseInt(address));
+        System.arraycopy(addrBytes, 0, bytes, 4, 4); // Store the address in the last 4 bytes
+
+        return bytes;
+    }
+
+    public byte[] handleRET() {
+        byte[] bytes = new byte[4];
+        bytes[0] = RET;
+
+        return bytes;
     }
 
     public byte getOpCode(String opcode) {
@@ -200,7 +261,7 @@ public class Assembler implements Registers {
             case "IP" -> IP;
             case "ZF" -> ZF;
 
-            default -> throw new IllegalArgumentException("Invalid register");
+            default -> throw new IllegalArgumentException("Invalid register: " + register);
         };
     }
 }

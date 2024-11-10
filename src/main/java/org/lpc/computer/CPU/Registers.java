@@ -20,7 +20,7 @@ public interface Registers {
     byte EDX = 0x03; // Data
 
     // Index Registers
-    byte ESI = 0x1; // Source Index
+    byte ESI = 0x10; // Source Index
     byte EDI = 0x11; // Destination Index
 
     // Stack Pointer
