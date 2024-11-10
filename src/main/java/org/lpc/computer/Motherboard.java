@@ -2,6 +2,7 @@ package org.lpc.computer;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.lpc.computer.CPU.CPU;
 
 @Setter
 @Getter
@@ -9,12 +10,18 @@ public class Motherboard {
     private CPU cpu;
     private RAM ram;
 
-    public Motherboard() {
+    private int ramMemorySize;
+    private int ramStackSize;
+    private int ramDataSize;
 
+    public Motherboard(int ramMemorySize, int ramStackSize) {
+        this.ramMemorySize = ramMemorySize;
+        this.ramStackSize = ramStackSize;
+        this.ramDataSize = ramMemorySize - ramStackSize;
     }
 
     public void boot() {
-        this.ram = new RAM(this, 2048, 1024);  // 1KB memory, 1KB stack
+        this.ram = new RAM(this, ramMemorySize, ramStackSize);  // 1KB memory, 1KB stack
         this.cpu = new CPU(this);
 
         cpu.init();

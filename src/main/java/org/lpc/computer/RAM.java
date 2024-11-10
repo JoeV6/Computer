@@ -3,6 +3,7 @@ package org.lpc.computer;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.lpc.computer.CPU.CPU;
 
 import java.util.Arrays;
 
@@ -24,9 +25,10 @@ public class RAM {
 
     /***
      * ----- Memory Layout -----
-     * Stack grows downward from the end of memory
-     * for example, if memorySize = 1024 and stackSize = 256,
-     * the stack will start at memory[768] and end at memory[1023]
+     * Example memory layout for 1KB program memory, 1KB stack and 1KB data:
+     * 0000 - 1023: Data
+     * 1024 - 2047: Program
+     * 2048 - 3071: Stack
      *
      */
 
@@ -122,7 +124,7 @@ public class RAM {
             """.formatted(memory.length, stackSize, stackStart, stackEnd, dataSize, dataStart, dataEnd);
     }
 
-    public String prettyDump() {
+    public String Dump() {
         StringBuilder sb = new StringBuilder();
         int address = 0;
 
@@ -141,7 +143,26 @@ public class RAM {
         return sb.toString();
     }
 
-    public String prettyDumpAll(){
+    public String DumpHex() {
+        StringBuilder sb = new StringBuilder();
+
+        // Iterate through memory in steps of 4 bytes (word size)
+        for (int i = 0; i < memory.length; i += 4) {
+            int value = readWord(i);
+
+            // If the value is non-zero, print it in hexadecimal
+            if (value != 0) {
+                sb.append(String.format("%02X %02X %02X %02X (0x%04X : %04d) [hex: 0x%08X]\n",
+                        memory[i] & 0xFF, memory[i + 1] & 0xFF,
+                        memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i, value));
+            }
+        }
+
+        return sb.toString();
+    }
+
+
+    public String DumpAll(){
         StringBuilder sb = new StringBuilder();
         int address = 0;
 

@@ -1,6 +1,6 @@
 package org.lpc;
 
-import org.lpc.computer.CPU;
+import org.lpc.computer.CPU.CPU;
 import org.lpc.computer.Motherboard;
 import org.lpc.computer.RAM;
 
@@ -11,7 +11,7 @@ public class Main {
     static CPU cpu;
 
     public static void main(String[] args) {
-        Motherboard motherboard = new Motherboard();
+        Motherboard motherboard = new Motherboard(3072, 1024);
 
         motherboard.boot();
         motherboard.shutdown();
@@ -24,7 +24,7 @@ public class Main {
         endColor();
 
         startColor(ANSI_GREEN);
-            log(ram.prettyDump());
+            log(ram.Dump());
         endColor();
     }
 }
