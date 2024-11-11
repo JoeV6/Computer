@@ -2,6 +2,7 @@ package org.lpc.computer.CPU;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.lpc.Logger;
 import org.lpc.computer.Motherboard;
 import org.lpc.computer.RAM.RAM;
 
@@ -108,6 +109,9 @@ public class CPU implements Opcodes, Registers{
                 int result = getRegisterValue(src) + getRegisterValue(src2);
                 setRegister(dest, result);
                 ZF_VALUE = (result == 0);
+
+                log(dumpRegisters());
+
                 return 4;
             }
             case SUB -> {
@@ -353,5 +357,20 @@ public class CPU implements Opcodes, Registers{
                 ZF=%b
             }
             """.formatted(IP_VALUE, EAX_VALUE, EBX_VALUE, ECX_VALUE, EDX_VALUE, ESP_VALUE, EBP_VALUE, ESI_VALUE, EDI_VALUE, ZF_VALUE);
+    }
+
+    public String dumpRegisters(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(ANSI_BLUE);
+        sb.append("\nRegisters: \n");
+        sb.append("EAX: ").append(EAX_VALUE).append("\n");
+        sb.append("EBX: ").append(EBX_VALUE).append("\n");
+        sb.append("ECX: ").append(ECX_VALUE).append("\n");
+        sb.append("EDX: ").append(EDX_VALUE).append("\n");
+        sb.append("\n");
+        sb.append("IP: ").append(IP_VALUE).append("\n");
+        sb.append(ANSI_RESET);
+
+        return sb.toString();
     }
 }
