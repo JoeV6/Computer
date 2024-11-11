@@ -1,8 +1,6 @@
 package org.lpc.computer.CPU;
 
 import lombok.Getter;
-import lombok.extern.java.Log;
-import org.lpc.Logger;
 import org.lpc.computer.RAM.RAM;
 
 import java.io.BufferedReader;
@@ -64,12 +62,12 @@ public class Assembler implements Registers {
         // programAddressPointer - 1 because the pointer is incremented after writing the instruction
         ram.setProgramEnd(programAddressPointer - 1);
 
-        setStartAddress();
+        hardCodeStartInstruction();
 
         reader.close();
     }
 
-    private void setStartAddress() {
+    private void hardCodeStartInstruction() {
         programAddressPointer = ram.getProgramStart();
         processCodeLine("CALL start");
     }

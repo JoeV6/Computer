@@ -1,5 +1,5 @@
 .data
-    n = 10 ; Define the target Fibonacci index
+    n = 10; Define the target Fibonacci index
 
 .fibLoop
     ; Calculate the next Fibonacci number
@@ -22,7 +22,7 @@
 
     MOV EBX, 1      ; F(1) = 1
     MOV ECX, 0      ; F(0) = 0
-    MOV EAX, n - 1  ; Set EAX to n-1 (loop counter)
+    MOV EAX, n      ; Set EAX to n-1 (loop counter)
     CALL fibLoop    ; Calculate the nth Fibonacci number
 
     STORE 1100, EBX ; Store the result (F(n)) in memory location 1100

@@ -151,36 +151,38 @@ public class RAM {
         StringBuilder sb = new StringBuilder();
 
         // Define and iterate over each memory segment
-        sb.append(ANSI_RED).append(strLine("Dumping memory segments", 100)).append(ANSI_RESET);
+        sb.append(ANSI_RED).append(strLine("Dumping memory segments", 90)).append(ANSI_RESET);
 
 
         dumpSegment(sb, "Program", ANSI_PURPLE, programStart, programEnd);
         dumpSegment(sb, "Data", ANSI_BLUE, dataStart, dataEnd);
         dumpSegment(sb, "Stack", ANSI_GREEN, stackStart, stackEnd);
 
-        sb.append(ANSI_RED).append(strLine(100)).append(ANSI_RESET);
+        sb.append(ANSI_RED).append(strLine(90)).append(ANSI_RESET);
 
         return sb.toString();
     }
 
     // Helper method to dump a segment
     private void dumpSegment(StringBuilder sb, String name, String color, int start, int end) {
-        sb.append(ANSI_YELLOW).append(strLine(name, 100)).append(ANSI_RESET);
+        sb.append(ANSI_YELLOW).append(strLine(name, 90)).append(ANSI_RESET);
+        sb.append(color).append(" BYTE 0   BYTE 1   BYTE 2   BYTE 3  (ADDRESS 0 H:I) [    VALUE    ] | OPCODE").append(ANSI_RESET).append("\n");
 
         for (int i = start; i < end; i += 4) {
             int value = readWord(i);
-            String opcode = cpu.getOpcodeName(memory[i]);
+            String opcode = "N/A";
+            if(name.equals("Program"))
+                opcode = cpu.getOpcodeName(memory[i]);
 
             // Print non-zero memory contents only
             if (value != 0) {
                 sb.append(String.format(
-                        color + "%08X %08X %08X %08X (0x%04X : %04d) [int: %06d] | opcode: %s" + Logger.ANSI_RESET + "\n",
+                        color + "%08X %08X %08X %08X (0x%04X : %04d) [int: %08d] | %s" + Logger.ANSI_RESET + "\n",
                         memory[i] & 0xFF, memory[i + 1] & 0xFF, memory[i + 2] & 0xFF, memory[i + 3] & 0xFF,
                         i, i, value, opcode));
             }
         }
     }
-
 
     public String DumpHex() {
         StringBuilder sb = new StringBuilder();
@@ -199,7 +201,6 @@ public class RAM {
 
         return sb.toString();
     }
-
 
     public String DumpAll(){
         StringBuilder sb = new StringBuilder();
