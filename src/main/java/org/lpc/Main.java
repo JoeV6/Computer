@@ -16,14 +16,13 @@ public class Main {
         cpu = motherboard.getCpu();
         ram = motherboard.getRam();
 
-        cpu.loadProgram("src/main/resources/programs/test.asm");
+        cpu.loadProgram("src/main/resources/programs/fib.asm");
 
         log(ram.dump());
 
         cpu.run();
 
         log(ram.dump());
-
 
         motherboard.shutdown();
     }
