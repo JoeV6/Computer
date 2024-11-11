@@ -43,8 +43,8 @@ public class RAM {
         this.stackSize = stackSize;
 
         // Set up stack region (starts at the end of the memory and grows downward)
-        this.stackStart = memory.length - stackSize; // stack starts at memory[1024]
-        this.stackEnd = memory.length; // stack ends at memory[2047]
+        this.stackStart = memory.length - stackSize;
+        this.stackEnd = memory.length;
 
         // Set up data region (starts at the beginning of the memory)
         this.dataStart = stackStart - dataSize;
@@ -80,6 +80,10 @@ public class RAM {
         }
     }
 
+    public void reset() {
+        Arrays.fill(memory, (byte) 0);
+    }
+
     public void writeWord(int value, int address) {
         write(address, (byte) (value & 0xFF));
         write(address + 1, (byte) ((value >> 8) & 0xFF));
@@ -92,6 +96,18 @@ public class RAM {
                 ((read(address + 1) & 0xFF) << 8) |
                 ((read(address + 2) & 0xFF) << 16) |
                 ((read(address + 3) & 0xFF) << 24);
+    }
+
+    // 64-bit operations, don't know if this is necessary
+    public void writeDWord(long value, int address) {
+        writeWord((int) (value & 0xFFFFFFFFL), address);
+        writeWord((int) (value >> 32), address + 4);
+    }
+
+    public long readDWord(int address) {
+        long lower = readWord(address) & 0xFFFFFFFFL;
+        long upper = readWord(address + 4) & 0xFFFFFFFFL;
+        return (upper << 32) | lower;
     }
 
     public static byte[] convertIntToBytes(int value) {
@@ -108,23 +124,6 @@ public class RAM {
                 ((bytes[1] & 0xFF) << 8) |
                 ((bytes[2] & 0xFF) << 16) |
                 ((bytes[3] & 0xFF) << 24);
-    }
-
-    // 64-bit operations, don't know if this is necessary
-    public void writeDWord(long value, int address) {
-        writeWord((int) (value & 0xFFFFFFFFL), address);
-        writeWord((int) (value >> 32), address + 4);
-    }
-
-    public long readDWord(int address) {
-        long lower = readWord(address) & 0xFFFFFFFFL;
-        long upper = readWord(address + 4) & 0xFFFFFFFFL;
-        return (upper << 32) | lower;
-    }
-
-
-    public void reset() {
-        Arrays.fill(memory, (byte) 0);  // Reset all memory to 0
     }
 
     @Override
@@ -151,6 +150,8 @@ public class RAM {
             }
             """.formatted(memory.length, stackSize, stackStart, stackEnd, dataSize, dataStart, dataEnd, programSize, programStart, programEnd);
     }
+
+    // ----------------- Memory Dumping / Debugging -----------------
 
     public String dump() {
         StringBuilder sb = new StringBuilder();

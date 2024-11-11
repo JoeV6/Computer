@@ -12,11 +12,11 @@ public class Main {
 
     public static void main(String[] args) {
         Motherboard motherboard = new Motherboard(1024, 1024, 1024);
-
         motherboard.boot();
-
         cpu = motherboard.getCpu();
         ram = motherboard.getRam();
+
+        cpu.loadProgram("src/main/resources/programs/test.asm");
 
         log(ram.dump());
 

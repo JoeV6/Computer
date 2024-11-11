@@ -16,7 +16,7 @@ import static org.lpc.Logger.*;
 
 @Getter @Setter
 public class CPU implements Opcodes, Registers{
-    // ----- Registers -----
+    // ----------------- Registers -----------------
     // Where the values of the registers are stored
     int IP_VALUE;
     int EAX_VALUE, EBX_VALUE, ECX_VALUE, EDX_VALUE;
@@ -24,7 +24,7 @@ public class CPU implements Opcodes, Registers{
     int ESI_VALUE, EDI_VALUE;
     boolean ZF_VALUE;
 
-    // -------- CPU --------
+    // -------------------- CPU --------------------
 
     Motherboard motherboard;
     RAM ram;
@@ -52,8 +52,8 @@ public class CPU implements Opcodes, Registers{
 
     public void run() {
         while (IP_VALUE < ram.getProgramEnd()) {
-            byte opcode = fetch(0); // Fetch the instruction
-            int next = decodeAndExecute(opcode); // Decode and execute the instruction, return the pointer increase needed
+            byte opcode = fetch(0);
+            int next = decodeAndExecute(opcode);
             IP_VALUE += next;
         }
         logLnColor(ANSI_GREEN, "Program execution complete. \n");
@@ -63,11 +63,15 @@ public class CPU implements Opcodes, Registers{
         return ram.read(IP_VALUE + index);
     }
 
-    private int fetchWord(int index){
-        return ram.readWord(IP_VALUE + index);
+    // Fetches the next word (4 bytes) from the program memory
+    // Used for instructions that require a 32-bit value
+    // The word will always be stored 4 bytes after the opcode
+    private int fetchWord(){
+        return ram.readWord(IP_VALUE + 4);
     }
 
-    // returns the pointer increase needed to get the next instruction
+    // Returns the pointer increase needed to get the next instruction
+    // Used for instructions that require a 32-bit value (they are 8 bytes long)
     private int decodeAndExecute(byte opcode) {
         switch(opcode){
             case MOV -> {
@@ -78,19 +82,19 @@ public class CPU implements Opcodes, Registers{
             }
             case MOV_I -> {
                 byte dest = fetch(1);
-                int value = fetchWord(4);
+                int value = fetchWord();
                 setRegister(dest, value);
                 return 8;
             }
             case LOAD -> {
                 byte dest = fetch(1);
-                int address = fetchWord(4);
+                int address = fetchWord();
                 setRegister(dest, ram.readWord(address));
                 return 8;
             }
             case STORE -> {
                 byte src = fetch(1);
-                int address = fetchWord(4);
+                int address = fetchWord();
                 ram.writeWord(getRegisterValue(src), address);
                 return 8;
             }
@@ -169,26 +173,26 @@ public class CPU implements Opcodes, Registers{
                 return 4;
             }
             case JMP -> {
-                int address = fetchWord(4);
+                int address = fetchWord();
                 IP_VALUE = address;
                 return 8;
             }
             case JZ -> {
-                int address = fetchWord(4);
+                int address = fetchWord();
                 if(ZF_VALUE){
                     IP_VALUE = address;
                 }
                 return 8;
             }
             case JNZ -> {
-                int address = fetchWord(4);
+                int address = fetchWord();
                 if(!ZF_VALUE){
                     IP_VALUE = address;
                 }
                 return 8;
             }
             case CALL -> { // not implemented properly
-                int address = fetchWord(4);
+                int address = fetchWord();
                 push(IP_VALUE); // Push return address onto the stack
                 IP_VALUE = address; // Jump to the called address
                 return 8;
@@ -222,7 +226,7 @@ public class CPU implements Opcodes, Registers{
             case ESI -> ESI_VALUE = value;
             case EDI -> EDI_VALUE = value;
             case IP -> IP_VALUE = value;
-            case ZF -> ZF_VALUE = value != 0;
+            case ZF -> ZF_VALUE = (value != 0);
 
             default -> System.err.println("Invalid register: " + reg);
         }
@@ -260,10 +264,9 @@ public class CPU implements Opcodes, Registers{
             case ZF -> {
                 return ZF_VALUE ? 1 : 0;
             }
-
             default -> {
                 System.err.println("Invalid register: " + reg);
-                return 0;
+                return -1;
             }
         }
     }
@@ -293,12 +296,7 @@ public class CPU implements Opcodes, Registers{
         };
     }
 
-
-
-
-
-
-    // ------- Stack Operations -------
+    // ------------------------ Stack Operations ------------------------
 
     public void push(int value){
         ESP_VALUE -= 4;
@@ -328,6 +326,8 @@ public class CPU implements Opcodes, Registers{
         this.ESI_VALUE = this.EDI_VALUE = 0;
         this.ZF_VALUE = false;
     }
+
+    // ----------------------------- Debugging -----------------------------
 
     @Override
     public String toString() {

@@ -29,8 +29,6 @@ public class Motherboard {
         cpu.init();
         ram.init();
 
-        cpu.loadProgram("src/main/resources/programs/test.asm");
-
         // TODO: Load RAM and CPU state from disk
     }
 
