@@ -3,11 +3,12 @@ package org.lpc.computer;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.lpc.Logger;
 import org.lpc.computer.CPU.CPU;
 
 import java.util.Arrays;
 
-import static org.lpc.Logger.logErr;
+import static org.lpc.Logger.*;
 
 @Getter @Setter
 public class RAM {
@@ -153,23 +154,38 @@ public class RAM {
 
     public String dump() {
         StringBuilder sb = new StringBuilder();
-        int address = 0;
 
-        // Iterate through memory in steps of 4 bytes (word size)
-        for (int i = address; i < memory.length; i += 4) {
-            int value = readWord(i);
-            String opcode = cpu.getOpcodeName(memory[i]);
+        // Define and iterate over each memory segment
+        sb.append(ANSI_RED).append(strLine("Dumping memory segments", 100)).append(ANSI_RESET);
 
-            // If the value is non-zero, print it
-            if (value != 0) {
-                sb.append(String.format("%08X %08X %08X %08X (0x%04X : %04d) [int: %06d] | opcode: %s\n",
-                        memory[i] & 0xFF, memory[i + 1] & 0xFF,
-                        memory[i + 2] & 0xFF, memory[i + 3] & 0xFF, i, i, value, opcode));
-            }
-        }
+
+        dumpSegment(sb, "Program", ANSI_PURPLE, programStart, programEnd);
+        dumpSegment(sb, "Data", ANSI_BLUE, dataStart, dataEnd);
+        dumpSegment(sb, "Stack", ANSI_GREEN, stackStart, stackEnd);
+
+        sb.append(ANSI_RED).append(strLine(100)).append(ANSI_RESET);
 
         return sb.toString();
     }
+
+    // Helper method to dump a segment
+    private void dumpSegment(StringBuilder sb, String name, String color, int start, int end) {
+        sb.append(ANSI_YELLOW).append(strLine(name, 100)).append(ANSI_RESET);
+
+        for (int i = start; i < end; i += 4) {
+            int value = readWord(i);
+            String opcode = cpu.getOpcodeName(memory[i]);
+
+            // Print non-zero memory contents only
+            if (value != 0) {
+                sb.append(String.format(
+                        color + "%08X %08X %08X %08X (0x%04X : %04d) [int: %06d] | opcode: %s" + Logger.ANSI_RESET + "\n",
+                        memory[i] & 0xFF, memory[i + 1] & 0xFF, memory[i + 2] & 0xFF, memory[i + 3] & 0xFF,
+                        i, i, value, opcode));
+            }
+        }
+    }
+
 
     public String DumpHex() {
         StringBuilder sb = new StringBuilder();

@@ -43,6 +43,17 @@ public class Assembler implements Registers {
         reader.close();
     }
 
+    public void prepLine(String line) {
+        line = line.trim();
+        if (line.isEmpty() || line.startsWith(";")) {
+            return;
+        }
+        line = line.split(";")[0].trim(); // Remove comments
+        line = line.replace(",", "");
+    }
+
+
+
     public byte[] decodeInstruction(String instruction) {
         String[] parts = instruction.split(" ");
         if (parts.length == 0) {
@@ -130,8 +141,8 @@ public class Assembler implements Registers {
     }
 
     public byte[] handleSTORE(String[] parts) {
-        String reg = parts[1];
-        String address = parts[2];
+        String address = parts[1];
+        String reg = parts[2];
 
         byte[] bytes = new byte[8];
 

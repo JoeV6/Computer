@@ -7,6 +7,8 @@ import org.lpc.computer.RAM;
 
 import java.io.File;
 
+import static org.lpc.Logger.*;
+
 /**
  * 32-bit CPU
  * 32-bit registers
@@ -54,6 +56,7 @@ public class CPU implements Opcodes, Registers{
             int next = decodeAndExecute(opcode); // Decode and execute the instruction, return the pointer increase needed
             IP_VALUE += next;
         }
+        logLnColor(ANSI_GREEN, "Program execution complete. \n");
     }
 
     private byte fetch(int index){
@@ -86,8 +89,8 @@ public class CPU implements Opcodes, Registers{
                 return 8;
             }
             case STORE -> {
-                int address = fetchWord(1);
-                byte src = fetch(5);
+                byte src = fetch(1);
+                int address = fetchWord(4);
                 ram.writeWord(getRegisterValue(src), address);
                 return 8;
             }

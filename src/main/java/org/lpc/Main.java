@@ -18,23 +18,12 @@ public class Main {
         cpu = motherboard.getCpu();
         ram = motherboard.getRam();
 
-        startColor(ANSI_YELLOW);
-            log(cpu, ram);
-        endColor();
-
-        startColor(ANSI_GREEN);
-            log(ram.dump());
-        endColor();
+        log(ram.dump());
 
         cpu.run();
 
-        startColor(ANSI_BLUE);
-            log(ram.dump());
-        endColor();
+        log(ram.dump());
 
-        startColor(ANSI_YELLOW);
-            log(cpu, ram);
-        endColor();
 
         motherboard.shutdown();
     }
