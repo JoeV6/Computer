@@ -2,7 +2,7 @@ package org.lpc;
 
 import org.lpc.computer.CPU.CPU;
 import org.lpc.computer.Motherboard;
-import org.lpc.computer.RAM;
+import org.lpc.computer.RAM.RAM;
 
 import static org.lpc.Logger.*;
 

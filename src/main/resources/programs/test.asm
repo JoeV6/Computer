@@ -1,22 +1,19 @@
-MOV EAX, 2024
-MOV EBX, 1
+.data
+    x = 5;
+    y = 5;
 
-SUB EBX, EBX
-STORE 1036, ZF
-MOV EBX, 1
-ADD EBX, EBX
-STORE 1040, ZF
+.setZeroIterate
+    MOV EDX, 1
+    SUB EAX, EDX
+    JNZ setZeroIterate
+    RET
 
-PUSH EBX
-POP ECX
-PUSH EAX
-POP EBX
-
-STORE 1024, EAX
-STORE 1028, EBX
-STORE 1032, ECX
-
-
+.start
+    MOV EAX 5
+    CALL setZeroIterate ; sets EAX to 0 iteratively
+    MOV EBX 1
+    ADD EAX, EBX
+    STORE 1100, EAX ; should be 1
 
 
 

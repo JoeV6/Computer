@@ -3,7 +3,7 @@ package org.lpc.computer.CPU;
 import lombok.Getter;
 import lombok.Setter;
 import org.lpc.computer.Motherboard;
-import org.lpc.computer.RAM;
+import org.lpc.computer.RAM.RAM;
 
 import java.io.File;
 
@@ -39,6 +39,7 @@ public class CPU implements Opcodes, Registers{
         this.ram = motherboard.getRam();
         this.assembler = new Assembler(this);
         ESP_VALUE = ram.getStackEnd();
+        IP_VALUE = ram.getProgramStart();
     }
 
     public void loadProgram(String programFile){
@@ -53,6 +54,7 @@ public class CPU implements Opcodes, Registers{
     public void run() {
         while (IP_VALUE < ram.getProgramEnd()) {
             byte opcode = fetch(0);
+            System.out.println("IP: " + IP_VALUE + " Opcode: " + getOpcodeName(opcode));
             int next = decodeAndExecute(opcode);
             IP_VALUE += next;
         }
@@ -174,41 +176,48 @@ public class CPU implements Opcodes, Registers{
             }
             case JMP -> {
                 int address = fetchWord();
+                stackPush(IP_VALUE);
                 IP_VALUE = address;
-                return 8;
+                return 0;
             }
             case JZ -> {
                 int address = fetchWord();
                 if(ZF_VALUE){
+                    stackPush(IP_VALUE);
                     IP_VALUE = address;
+                }  else {
+                    return 8; // next instruction
                 }
-                return 8;
+                return 0;
             }
             case JNZ -> {
                 int address = fetchWord();
                 if(!ZF_VALUE){
+                    stackPush(IP_VALUE);
                     IP_VALUE = address;
+                } else {
+                    return 8; // next instruction
                 }
-                return 8;
+                return 0;
             }
-            case CALL -> { // not implemented properly
+            case CALL -> {
                 int address = fetchWord();
-                push(IP_VALUE); // Push return address onto the stack
-                IP_VALUE = address; // Jump to the called address
-                return 8;
+                stackPush(IP_VALUE); // Push return address onto the stack
+                IP_VALUE = address; // Jump to the function
+                return 0;
             }
-            case RET -> { // not implemented properly
-                IP_VALUE = pop(); // Pop the return address from the stack and jump to it
-                return 4;
+            case RET -> {
+                IP_VALUE = stackPop(); // Pop return address from the stack
+                return 8;         // Return 8 bytes after the call instruction
             }
             case PUSH -> {
                 byte reg = fetch(1);
-                push(getRegisterValue(reg));
+                stackPush(getRegisterValue(reg));
                 return 4;
             }
             case POP -> {
                 byte reg = fetch(1);
-                setRegister(reg, pop());
+                setRegister(reg, stackPop());
                 return 4;
             }
         }
@@ -298,26 +307,25 @@ public class CPU implements Opcodes, Registers{
 
     // ------------------------ Stack Operations ------------------------
 
-    public void push(int value){
+    public void stackPush(int value){
         ESP_VALUE -= 4;
 
         if(ESP_VALUE < ram.getStackStart()){
-            System.err.println("Stack Overflow");
-            ESP_VALUE += 4;
-            return;
+            throw new IllegalStateException("Stack Overflow");
         }
         ram.writeWord(value, ESP_VALUE);
     }
 
-    public int pop(){
+    public int stackPop(){
         if(ESP_VALUE >= ram.getStackEnd()){
-            System.err.println("Stack Underflow");
-            return 0;
+            throw new IllegalStateException("Stack Underflow");
         }
         int value = ram.readWord(ESP_VALUE);
         ESP_VALUE += 4;
         return value;
     }
+
+    // ------------------------ Reset ------------------------
 
     public void reset(){
         this.IP_VALUE = 0;

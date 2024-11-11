@@ -3,6 +3,7 @@ package org.lpc.computer;
 import lombok.Getter;
 import lombok.Setter;
 import org.lpc.computer.CPU.CPU;
+import org.lpc.computer.RAM.RAM;
 
 @Setter
 @Getter

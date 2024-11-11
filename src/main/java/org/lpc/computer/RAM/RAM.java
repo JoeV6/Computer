@@ -1,10 +1,11 @@
-package org.lpc.computer;
+package org.lpc.computer.RAM;
 
 
 import lombok.Getter;
 import lombok.Setter;
 import org.lpc.Logger;
 import org.lpc.computer.CPU.CPU;
+import org.lpc.computer.Motherboard;
 
 import java.util.Arrays;
 
@@ -16,23 +17,16 @@ public class RAM {
     CPU cpu;
 
     byte[] memory;  // A single memory array for both stack and data
-    int stackStart;
-    int stackEnd;
-    int stackSize;
 
-    int dataStart;
-    int dataEnd;
-    int dataSize;
-
-    int programStart;
-    int programEnd;
-    int programSize;
+    int stackStart, stackEnd, stackSize;
+    int dataStart, dataEnd, dataSize;
+    int programStart, programEnd, programSize;
 
     /***
      * ----- Memory Layout -----
      * Example memory layout for 1KB program memory, 1KB stack and 1KB data:
-     * 0000 - 1023: Data
-     * 1024 - 2047: Program
+     * 0000 - 1023: Program
+     * 1024 - 2047: Data
      * 2048 - 3071: Stack
      */
 
@@ -46,12 +40,12 @@ public class RAM {
         this.stackStart = memory.length - stackSize;
         this.stackEnd = memory.length;
 
-        // Set up data region (starts at the beginning of the memory)
+        // Set up data region (starts at the end of the program and grows downward)
         this.dataStart = stackStart - dataSize;
         this.dataEnd = stackStart - 1;
         this.dataSize = dataSize;
 
-        // Set up program region (starts at the end of the data region)
+        // Set up program region (starts at beginning of memory and grows upward)
         this.programStart = dataStart - programSize;
         this.programEnd = dataStart - 1;
         this.programSize = programSize;
