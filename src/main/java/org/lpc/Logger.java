@@ -23,6 +23,15 @@ public class Logger {
         System.out.println();
     }
 
+    public static void logLnColor(String color, Object... message) {
+        startColor(color);
+        for (Object m : message) {
+            System.out.print(m.toString());
+        }
+        endColor();
+        System.out.println();
+    }
+
     public static void logErr(Object... message) {
         for (Object m : message) {
             startColor(ANSI_RED);
@@ -38,4 +47,22 @@ public class Logger {
         }
         System.out.println();
     }
+
+    public static String strLine(String text, int totalLength) {
+        if (text.length() >= totalLength) {
+            return text + "\n";
+        }
+
+        int paddingLength = (totalLength - text.length() - 2) / 2;
+        String padding = "-".repeat(paddingLength);
+
+        return padding + " " + text + " " + padding +
+                (paddingLength * 2 + text.length() + 2 < totalLength ? "-" : "") + "\n";
+    }
+
+    public static String strLine(int totalLength) {
+        return "-".repeat(totalLength) + "\n";
+    }
+
+
 }

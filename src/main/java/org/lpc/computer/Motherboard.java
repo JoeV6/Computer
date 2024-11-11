@@ -3,6 +3,7 @@ package org.lpc.computer;
 import lombok.Getter;
 import lombok.Setter;
 import org.lpc.computer.CPU.CPU;
+import org.lpc.computer.RAM.RAM;
 
 @Setter
 @Getter
@@ -28,8 +29,6 @@ public class Motherboard {
 
         cpu.init();
         ram.init();
-
-        cpu.loadProgram("src/main/resources/programs/test.asm");
 
         // TODO: Load RAM and CPU state from disk
     }
